@@ -53,6 +53,7 @@ class DB
      */
     public function all(string $table, $columns = '*')
     {
+        $this->checkAndCreateTable($table);
         if (is_array($columns)) {
             foreach ($columns as &$column) {
                 $column = preg_replace('/[^a-zA-Z_]*/', '', $column);
@@ -64,6 +65,24 @@ class DB
         }
         $stmt->execute();
         return $stmt->fetchAll();
+    }
+
+    public function checkAndCreateTable(string $tableName)
+    {
+        $tableExists = $this->pdo->query("SHOW TABLES LIKE '{$tableName}'")->rowCount() > 0;
+        if (!$tableExists) {
+            // Tablo yok, oluştur
+            $createQuery = "CREATE TABLE {$tableName} (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )";
+
+            $this->pdo->exec($createQuery);
+            return true;
+        }
+
+        return true;
     }
 
     /**
